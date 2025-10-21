@@ -1,16 +1,10 @@
 import express from 'express';
-import { signup } from '../controllers/auth.controllers.js';
+import { signup, login, logout } from '../controllers/auth.controllers.js';
 
 const router = express.Router();
 
 router.post("/signup", signup);
-
-router.get("/login", (req, res) => {
-    res.send("Login endpoint");
-});
-
-router.get("/logout", (req, res) => {
-    res.send("Logout endpoint");
-});
+router.post("/login", login);
+router.post("/logout", logout);  // post request because get requests can be cached by browsers and intermediate proxies which may lead to security issues
 
 export default router;
