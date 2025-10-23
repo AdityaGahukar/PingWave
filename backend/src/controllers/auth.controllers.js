@@ -99,3 +99,25 @@ export const logout = (_, res) => {
     res.cookie("jwt", "", {maxAge: 0});  // expire the cookie immediately
     res.status(200).json({message: "Logged out successfully"});
 };
+
+export const updateProfilePic = async (req, res) => {
+    try {
+        const { profilePic } = req.body;  // new profile picture URL
+        if(!profilePic) return res.status(400).json({ message: "Profile picture is required" }); 
+
+        const userId = req.user._id;  // obtained from protectRoute middleware
+        
+        const uploadResponse = await cloudinary.uploader.upload(profilePic);  // upload to Cloudinary
+
+        const updatedUser = await User.findByIdAndUpdate(  // update user in DB
+            userId,
+            { profilePic: uploadResponse.secure_url },
+            { new: true, select: "-password -__v" }  // return the updated document excluding password and __v
+        );
+
+        res.status(200).json(updatedUser);  // return the updated user object
+    } catch (error) {
+        console.error("Error in updateProfilePic controller: ", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}

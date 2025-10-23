@@ -1,10 +1,15 @@
 import express from 'express';
-import { signup, login, logout } from '../controllers/auth.controllers.js';
+import { signup, login, logout, updateProfilePic } from '../controllers/auth.controllers.js';
+import {protectRoute} from "../middlewares/auth.middleware.js"
 
 const router = express.Router();
 
 router.post("/signup", signup);
 router.post("/login", login);
 router.post("/logout", logout);  // post request because get requests can be cached by browsers and intermediate proxies which may lead to security issues
+
+router.put("/update-profile", protectRoute, updateProfilePic);
+
+router.get("/check-auth", protectRoute, (req, res) => res.status(200).json({ message: "Authorized", user: req.user })); // route to check if the user is authenticated (when the frontend loads, it can call this route to verify if the user is logged in)
 
 export default router;
