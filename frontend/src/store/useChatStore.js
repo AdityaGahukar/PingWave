@@ -25,9 +25,11 @@ export const useChatStore = create((set, get) => ({
         set({ isUsersLoading: true });
         try {
             const res = await axiosInstance.get("/messages/contacts");
-            set({ allContacts: res.data });
+            console.log(res.data);
+            set({ allContacts: res.data.users || [] });
         } catch (error) {
-            toast.error(error.response.data.message);
+            toast.error(error?.response?.data?.message || "Failed to load users");
+            set({ allContacts: []});
         } finally {
             set({ isUsersLoading: false });
         }
@@ -37,9 +39,11 @@ export const useChatStore = create((set, get) => ({
         set({ isUsersLoading: true });
         try {
             const res = await axiosInstance.get("/messages/chats");
-            set({ chats: res.data});
+            set({ chats: res.data.chatPartners || [] });
         } catch (error){
-            toast.error(error.response.data.message);
+            console.error("Error fetching chats:", error);
+            toast.error(error?.response?.data?.message || "Failed to load chats");
+            set({ chats: [] });
         } finally {
             set({ isUsersLoading: false});
         }

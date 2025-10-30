@@ -13,8 +13,8 @@ export const useAuthStore = create((set) => ({
 
     checkAuth: async () => {
         try {
-            const res = await axiosInstance.get("/auth/check");
-            set({ authUser: res.data});
+            const res = await axiosInstance.get("/auth/check-auth");
+            set({ authUser: res.data.user });
         } catch (error) {
             console.log("Error in authCheck:", error);
             set({ authUser: null });
@@ -31,7 +31,7 @@ export const useAuthStore = create((set) => ({
 
             toast.success("Account created successfully!");
         } catch(error) {
-            toast.error(error.response?.data?.message || "Signup failed. Please try again.");
+            toast.error(error?.response?.data?.message || "Signup failed. Please try again.");
         } finally {
             set({ isSigningUp: false });
         }
@@ -44,7 +44,7 @@ export const useAuthStore = create((set) => ({
             set({ authUser: res.data });
             toast.success("Logged in successfully");
         } catch (error) {
-            toast.error(error.response.data.message || "Login failed. Please try again.");
+            toast.error(error?.response?.data?.message || "Login failed. Please try again.");
         } finally {
             set({ isLoggingIn: false });
         }
@@ -56,7 +56,19 @@ export const useAuthStore = create((set) => ({
             set({ authUser: null });
             toast.success("Logged out successfully");
         } catch (error) {
-            toast.error(error.response.data.message || "Logout failed. Please try again.");
+            toast.error(error?.response?.data?.message || "Logout failed. Please try again.");
         }
-    }
+    },
+
+    updateProfilePic: async (data) => {
+        try {
+            const res = await axiosInstance.put("/auth/update-profile", data);
+            set({ authUser: res.data });
+            toast.success("Profile updated successfully");
+        } catch (error){
+            console.error("Error in update profile:", error);
+            const message = error.response?.data?.message || "Update profile picture failed";
+            toast.error(message);
+        }
+    },
 }));
