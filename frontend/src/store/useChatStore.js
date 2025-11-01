@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios.js";
 import toast from "react-hot-toast";
+import { useAuthStore } from "./useAuthStore";
 
 // All the states and actions related to chat will be managed here
 export const useChatStore = create((set, get) => ({
@@ -59,5 +60,47 @@ export const useChatStore = create((set, get) => ({
         } finally {
             set({isMessagesLoading: false});
         }
+    },
+
+    sendMessage: async (messageData) => {
+        const { selectedUser, messages } = get();
+        const { authUser } = useAuthStore.getState();  // access values from different store in Zustand
+
+        const tempId = `temp-${Date.now()}`;
+
+        const optimisticMessage = {
+            _id: tempId,
+            senderId: authUser._id,
+            receiverId: selectedUser._id,
+            text: messageData.text,
+            image: messageData.image,
+            createdAt: new Date().toISOString(),
+            isOptimistic: true,  // flag to identify optimistic messages (optional)
+        };
+        // immediately update the ui by adding the message
+        set({ messages: [...messages, optimisticMessage]});
+
+        try {
+            const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messageData);
+            set({ messages: messages.concat(res.data.newMessage)});
+        } catch (error) {
+            // remove optimistic message on failure
+            set({ messages: messages });
+            toast.error(error?.response?.data?.message || "Something went wrong while sending message");
+        } 
     }
 }))
+
+/*
+💡 What is an Optimistic Update?
+
+An optimistic update means you instantly update the UI assuming the backend request will succeed — instead of waiting for the server’s response.
+
+If the request fails later, you revert the change.
+
+In your case:
+As soon as the user clicks send, the new message appears in the chat window immediately (with a temporary _id).
+Meanwhile, the API call runs in the background.
+If the server responds successfully, you replace the temp message with the real one.
+If it fails, you remove the temporary message and show an error.
+*/
