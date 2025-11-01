@@ -63,7 +63,7 @@ export const useChatStore = create((set, get) => ({
     },
 
     sendMessage: async (messageData) => {
-        const { selectedUser, messages } = get();
+        const { selectedUser } = get();
         const { authUser } = useAuthStore.getState();  // access values from different store in Zustand
 
         const tempId = `temp-${Date.now()}`;
@@ -78,14 +78,25 @@ export const useChatStore = create((set, get) => ({
             isOptimistic: true,  // flag to identify optimistic messages (optional)
         };
         // immediately update the ui by adding the message
-        set({ messages: [...messages, optimisticMessage]});
+        // set({ messages: [...messages, optimisticMessage]});
+        set((state) => ({ messages: [...state.messages, optimisticMessage]}));
 
         try {
             const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messageData);
-            set({ messages: messages.concat(res.data.newMessage)});
+            // set({ messages: messages.concat(res.data.newMessage)});
+            set((state) => {
+                const idx = state.messages.findIndex((m) => m._id === tempId);
+                if(idx === -1) return { messages: [...state.messages, res.data.newMessage] };
+                const next = state.messages.slice();
+                next[idx] = res.data.newMessage;
+                return { messages: next};
+            });
         } catch (error) {
             // remove optimistic message on failure
-            set({ messages: messages });
+            // set({ messages: messages });
+            set((state) => ({
+                messages: state.messages.filter((m) => m._id !== tempId),
+            }));
             toast.error(error?.response?.data?.message || "Something went wrong while sending message");
         } 
     }
