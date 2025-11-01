@@ -23,7 +23,7 @@ function ChatsList() {
                 >
                     <div className="flex items-center gap-3">
                         {/* TODO: Fix this online status and make it work with socket */}
-                        <div className="avatar online">
+                        <div className="avatar avatar-online">
                             <div className="size-12 rounded-full">
                                 <img src={chat.profilePic || "/avatar.png"} alt="chat.fullName" />
                             </div>
