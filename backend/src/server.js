@@ -17,7 +17,7 @@ const PORT = ENV.PORT || 3000;
 
 // Global middlewares: 
 app.use(cors({origin: ENV.CLIENT_URL, credentials: true})); // to allow cross origin requests from client
-app.use(express.json({ limit: "5mb" })); // req.body --> to parse json body (middleware to handle json data sent from user/client)
+app.use(express.json({ limit: "10mb" })); // req.body --> to parse json body (middleware to handle json data sent from user/client)
 app.use(cookieParser()); // to parse cookies from request headers
 
 // routes
