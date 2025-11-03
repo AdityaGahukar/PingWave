@@ -7,13 +7,18 @@ import MessageInput from "./MessageInput";
 import MessagesLoadingSkeleton from "./MessagesLoadingSkeleton";
 
 function ChatContainer() {
-    const {selectedUser, getMessagesByUserId, messages, isMessagesLoading} = useChatStore();
+    const {selectedUser, getMessagesByUserId, messages, isMessagesLoading, subscribeToMessages, unsubscribeFromMessages} = useChatStore();
     const {authUser} = useAuthStore();
     const messageEndRef = useRef(null);
 
     useEffect(() => {
         getMessagesByUserId(selectedUser._id);
-    }, [selectedUser, getMessagesByUserId]);
+        subscribeToMessages();  // subscribe to new messages via socket
+
+        return () => {
+            unsubscribeFromMessages();  // cleanup on unmount or when selectedUser changes
+        };
+    }, [selectedUser, getMessagesByUserId, subscribeToMessages, unsubscribeFromMessages]);
 
     useEffect(() => {
         if(messageEndRef.current){  // if we have this reference (new message), scroll to the latest message

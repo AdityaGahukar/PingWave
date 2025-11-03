@@ -99,6 +99,36 @@ export const useChatStore = create((set, get) => ({
             }));
             toast.error(error?.response?.data?.message || "Something went wrong while sending message");
         } 
+    },
+    // Subscribe to incoming messages
+    subscribeToMessages: () => {
+        const { selectedUser, isSoundEnabled } = get();
+        if(!selectedUser) return; // no user selected
+
+        const socket = useAuthStore.getState().socket;
+
+        socket.on("newMessage", (newMessage) => {
+            const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
+            if(!isMessageSentFromSelectedUser) return; // ignore messages not from the selected user
+
+            const currentMessages = get().messages;
+            set({ messages: [...currentMessages, newMessage] }); // append the new message
+
+            // play notification sound if enabled
+            if(isSoundEnabled){
+                const notificationSound = new Audio("/sounds/notification.mp3");
+                
+                notificationSound.currentTime = 0;  // rewind to start
+                notificationSound.play().catch((err) => {
+                    console.error("Error playing notification sound: ", err);
+                });
+            }
+        });
+    },
+
+    unsubscribeFromMessages: () => {
+        const socket = useAuthStore.getState().socket;
+        socket.off("newMessage");
     }
 }))
 
